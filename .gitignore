@@ -26,7 +26,6 @@
 !/themes/simple/
 
 # Don't commit the external libs from vendor folder
-/vendor
 
 # Some special OS files that should not commited
 /*.phar
