@@ -104,7 +104,7 @@ try {
     if ($getViewMode === 'html') {
         $page->assignSmartyVariable('classTable', 'table table-condensed table-hover');
 
-        if ($gSettingsManager->getBool('enable_rss') && (int)$gSettingsManager->get('events_module_enabled') === 1) {
+        if ($gSettingsManager->getBool('enable_rss') && (int) $gSettingsManager->get('events_module_enabled') === 1) {
             $page->addRssFile(
                 ADMIDIO_URL . '/rss/events.php?organization_short_name=' . $gCurrentOrganization->getValue('org_shortname'),
                 $gL10n->get('SYS_RSS_FEED_FOR_VAR', array($gCurrentOrganization->getValue('org_longname') . ' - ' . $gL10n->get('SYS_EVENTS')))
@@ -140,8 +140,8 @@ try {
                         var groupID = "btn_group_" + $approvalStateElement.data("id");
                         if (returnData.status === "success") {
                             ' . ($getView === 'detail' ?
-                '$("#" + groupID + " .dropdown-toggle").html($approvalStateElement.html());' :
-                '$("#" + groupID + " .dropdown-toggle").html($approvalStateElement.children("i").clone());') . '
+            '$("#" + groupID + " .dropdown-toggle").html($approvalStateElement.html());' :
+            '$("#" + groupID + " .dropdown-toggle").html($approvalStateElement.children("i").clone());') . '
                             messageBox(returnData.message);
                         } else {
                             messageBox(returnData.message, "' . $gL10n->get('SYS_ERROR') . '", "error");
@@ -364,7 +364,7 @@ try {
             $participateModalForm = false;
 
             // If extended options for participation are allowed, then use a modal form instead the dropdown button
-            if ((int)$event->getValue('dat_allow_comments') === 1 || (int)$event->getValue('dat_additional_guests') === 1) {
+            if ((int) $event->getValue('dat_allow_comments') === 1 || (int) $event->getValue('dat_additional_guests') === 1) {
                 $participateModalForm = true;
             }
 
@@ -396,7 +396,7 @@ try {
                 }
             }
 
-            $eventLocation = (string)$event->getValue('dat_location', 'database');
+            $eventLocation = (string) $event->getValue('dat_location', 'database');
             if ($eventLocation !== '') {
                 // Show a map link, when at least 2 words available
                 // having more than 3 characters each
@@ -421,8 +421,10 @@ try {
                     <a href="' . $locationUrl . '" target="_blank" title="' . $gL10n->get('SYS_SHOW_MAP') . '">' . $eventLocation . '</a>';
 
                     // if valid login and enough information about address exist - calculate the route
-                    if ($gValidLogin && $gCurrentUser->getValue('STREET') !== ''
-                        && ($gCurrentUser->getValue('POSTCODE') !== '' || $gCurrentUser->getValue('CITY') !== '')) {
+                    if (
+                        $gValidLogin && $gCurrentUser->getValue('STREET') !== ''
+                        && ($gCurrentUser->getValue('POSTCODE') !== '' || $gCurrentUser->getValue('CITY') !== '')
+                    ) {
                         $routeOriginParam = array($gCurrentUser->getValue('STREET'));
 
                         if ($gCurrentUser->getValue('POSTCODE') !== '') {
@@ -464,10 +466,12 @@ try {
                 $participants = new Participants($gDb, $eventRolId);
 
                 // check the rights if the user is allowed to view the participants, or he is allowed to participate
-                if ($gCurrentUser->hasRightViewRole((int)$event->getValue('dat_rol_id'))
+                if (
+                    $gCurrentUser->hasRightViewRole((int) $event->getValue('dat_rol_id'))
                     || $row['mem_leader'] == 1
                     || $gCurrentUser->isAdministratorEvents()
-                    || $event->allowedToParticipate()) {
+                    || $event->allowedToParticipate()
+                ) {
                     $outputNumberMembers = $participants->getCount();
                     $outputNumberLeaders = $participants->getNumLeaders();
                     $participantsArray = $participants->getParticipantsArray();
@@ -766,22 +770,31 @@ try {
                     }
                 }
 
-                if ($outputButtonParticipation !== '' || $outputButtonParticipants !== ''
-                    || $outputButtonParticipantsEmail !== '' || $outputButtonParticipantsAssign !== '') {
+                if (
+                    $outputButtonParticipation !== '' || $outputButtonParticipants !== ''
+                    || $outputButtonParticipantsEmail !== '' || $outputButtonParticipantsAssign !== ''
+                ) {
                     $page->addHtml('<div id="btn_group_' . $eventUUID . '" class="btn-group">' . $outputButtonParticipation . $outputButtonParticipants . $outputButtonParticipantsEmail . $outputButtonParticipantsAssign . '</div>');
                 }
                 $page->addHtml('
-                </div>
+                </div>');
+
+                // show information about creating and editing user only to logged in users
+                if ($gValidLogin) {
+                    $page->addHtml('
                 <div class="card-footer">
                     <div class="admidio-info-created-edited">
                         <span class="admidio-info-created">' . $gL10n->get('SYS_CREATED_BY_AND_AT', array($event->getNameOfCreatingUser(), $event->getValue('dat_timestamp_create'))) . '</span>');
 
-                        if ($event->getNameOfLastEditingUser() !== '') {
-                            $page->addHtml('<span class="admidio-info-created">' . $gL10n->get('SYS_LAST_EDITED_BY', array($event->getNameOfLastEditingUser(), $event->getValue('dat_timestamp_change'))) . '</span>');
-                        }
-                $page->addHtml('
+                    if ($event->getNameOfLastEditingUser() !== '') {
+                        $page->addHtml('<span class="admidio-info-created">' . $gL10n->get('SYS_LAST_EDITED_BY', array($event->getNameOfLastEditingUser(), $event->getValue('dat_timestamp_change'))) . '</span>');
+                    }
+                    $page->addHtml('
                         </div>
-                    </div>
+                    </div>');
+                }
+
+                $page->addHtml('
                 </div>');
             } else { // $getView = 'compact' or 'room' or 'participants' or 'description'
                 // show table view of events
@@ -846,9 +859,11 @@ try {
 
                         if (is_array($participantsArray)) {
                             // Only show participants if user has the right to view the list, is leader or has permission to create/edit events
-                            if ($gCurrentUser->hasRightViewRole((int)$event->getValue('dat_rol_id'))
+                            if (
+                                $gCurrentUser->hasRightViewRole((int) $event->getValue('dat_rol_id'))
                                 || $row['mem_leader'] == 1
-                                || $gCurrentUser->isAdministratorEvents()) {
+                                || $gCurrentUser->isAdministratorEvents()
+                            ) {
                                 foreach ($participantsArray as $participant) {
                                     if ($participant['approved'] === Participants::PARTICIPATION_YES) {
                                         $columnValue[] = $participant['firstname'] . ' ' . $participant['surname'];
